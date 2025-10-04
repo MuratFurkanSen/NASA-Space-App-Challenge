@@ -131,6 +131,68 @@
                 <div class="card output-card">
                     <div class="card-header">
                         <div class="card-title">
+                            <i class="fas fa-robot"></i> Model Tahmini
+                        </div>
+                        <div class="card-actions">
+                            <button class="icon-btn" id="exportResults">
+                                <i class="fas fa-download"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <div class="loading" id="predictionLoading">
+                            <div class="spinner"></div>
+                            <p>Model çalıştırılıyor...</p>
+                        </div>
+                        <div id="predictionResults">
+
+                            <div class="table-container">
+                                <table class="prediction-table">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Tahmin</th>
+
+                                        </tr>
+                                    </thead>
+                                    <tbody id="predictionTableBody">
+                                        <!-- Tablo verileri JS ile eklenecek -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card upload-card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <i class="fas fa-file-csv"></i> Veri Yükleme
+                        </div>
+                        <div class="card-actions">
+                            <button class="icon-btn">
+                                <i class="fas fa-info-circle"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <div class="upload-area" id="uploadArea">
+                            <div class="upload-icon">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                            </div>
+                            <h3>CSV Dosyanızı Yükleyin</h3>
+                            <p>Dosyanızı bu alana sürükleyin veya seçmek için tıklayın</p>
+                            <input type="file" id="csvFile" class="file-input" accept=".csv">
+                            <label for="csvFile" class="file-label">Dosya Seç</label>
+                            <div id="fileName" class="file-name">Henüz dosya seçilmedi</div>
+                        </div>
+                        <button id="runModel" class="btn btn-primary btn-full">
+                            <i class="fas fa-play"></i> Modeli Çalıştır
+                        </button>
+                    </div>
+                </div>
+                <div class="card output-card">
+                    <div class="card-header">
+                        <div class="card-title">
                             <i class="fas fa-robot"></i> Model Çıktıları
                         </div>
                         <div class="card-actions">
