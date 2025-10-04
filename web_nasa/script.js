@@ -49,25 +49,25 @@ let appState = {
 };
 
 // CSV dosyası yükleme işlemi
-csvFileInput.addEventListener('change', function(e) {
+csvFileInput.addEventListener('change', function (e) {
     const file = e.target.files[0];
     handleFileUpload(file);
 });
 
 // Sürükle bırak işlevselliği
-uploadArea.addEventListener('dragover', function(e) {
+uploadArea.addEventListener('dragover', function (e) {
     e.preventDefault();
     uploadArea.classList.add('drag-over');
 });
 
-uploadArea.addEventListener('dragleave', function() {
+uploadArea.addEventListener('dragleave', function () {
     uploadArea.classList.remove('drag-over');
 });
 
-uploadArea.addEventListener('drop', function(e) {
+uploadArea.addEventListener('drop', function (e) {
     e.preventDefault();
     uploadArea.classList.remove('drag-over');
-    
+
     const file = e.dataTransfer.files[0];
     if (file && (file.type === 'text/csv' || file.name.endsWith('.csv'))) {
         handleFileUpload(file);
@@ -82,11 +82,11 @@ function handleFileUpload(file) {
         appState.uploadedFile = file;
         fileNameDisplay.textContent = file.name;
         fileCountElement.textContent = '1';
-        
+
         // Dosya içeriğini oku (simülasyon)
         readCSVFile(file);
         simulateFileProcessing();
-        
+
         showNotification(`"${file.name}" başarıyla yüklendi!`, 'success');
     }
 }
@@ -94,7 +94,7 @@ function handleFileUpload(file) {
 // CSV dosyasını okuma (simülasyon)
 function readCSVFile(file) {
     const reader = new FileReader();
-    reader.onload = function(e) {
+    reader.onload = function (e) {
         const contents = e.target.result;
         console.log('CSV dosya içeriği:', contents.substring(0, 200) + '...');
         // Burada gerçek CSV parsing işlemi yapılabilir
@@ -106,7 +106,7 @@ function readCSVFile(file) {
 // Dosya işleme simülasyonu
 function simulateFileProcessing() {
     processingTimeElement.textContent = 'İşleniyor...';
-    
+
     setTimeout(() => {
         const processingTime = (Math.random() * 2 + 0.5).toFixed(2);
         processingTimeElement.textContent = `${processingTime}s`;
@@ -114,38 +114,41 @@ function simulateFileProcessing() {
 }
 
 // Model çalıştırma butonu
-runModelButton.addEventListener('click', function() {
+runModelButton.addEventListener('click', function () {
     if (!appState.uploadedFile) {
         showNotification('Lütfen önce bir CSV dosyası yükleyin.', 'warning');
         return;
     }
-    
+
     runMachineLearningModel();
 });
 
 // Makine öğrenimi modelini çalıştır
-function runMachineLearningModel() {
+async function runMachineLearningModel() {
     // Yükleme animasyonunu göster
     predictionLoading.style.display = 'block';
     runModelButton.disabled = true;
-    
-    // Model çalıştırma simülasyonu
-    setTimeout(() => {
-        // Rastgele tahmin sonuçları oluştur
-        generatePredictionResults();
-        
-        // Yükleme animasyonunu gizle
-        predictionLoading.style.display = 'none';
-        runModelButton.disabled = false;
-        
-        // Grafikleri güncelle
-        updateAllCharts();
-        
-        // İstatistikleri güncelle
-        updateStats();
-        
-        showNotification('Model başarıyla çalıştırıldı ve tahminler oluşturuldu!', 'success');
-    }, 2500);
+
+    const fileInput = document.getElementById("csvFile");
+    const file = fileInput.files[0];
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    let resp = await fetch('http://127.0.0.1:5000/predict', {
+        method: 'POST',
+        body: formData,
+    });
+    if (!resp.ok) {
+        alert('Something went wrong!');
+        return;
+    }
+    let data = await resp.json();
+    if (!data.success) {
+        alert(data.message ? data.message : 'Something went wrong! 2');
+        return;
+    }
+    console.log(data.prediction);
 }
 
 // Tahmin sonuçlarını oluşturma
@@ -153,10 +156,10 @@ function generatePredictionResults() {
     // Rastgele ortalama tahmin ve doğruluk oranı
     const avgPrediction = (Math.random() * 100).toFixed(2);
     const accuracyRate = (75 + Math.random() * 20).toFixed(2);
-    
+
     avgPredictionElement.textContent = `${avgPrediction}%`;
     accuracyRateElement.textContent = `${accuracyRate}%`;
-    
+
     // Tablo verilerini oluştur
     let tableHTML = '';
     for (let i = 1; i <= 8; i++) {
@@ -165,7 +168,7 @@ function generatePredictionResults() {
         const difference = (Math.abs(actualValue - prediction)).toFixed(2);
         const status = difference < 10 ? 'success' : 'warning';
         const statusText = difference < 10 ? 'Başarılı' : 'Orta';
-        
+
         tableHTML += `
             <tr>
                 <td>${i}</td>
@@ -176,9 +179,9 @@ function generatePredictionResults() {
             </tr>
         `;
     }
-    
+
     predictionTableBody.innerHTML = tableHTML;
-    
+
     // Model sonuçlarını state'e kaydet
     appState.modelResults = {
         avgPrediction: avgPrediction,
@@ -191,7 +194,7 @@ function generatePredictionResults() {
 function updateStats() {
     const accuracy = (75 + Math.random() * 20).toFixed(1);
     accuracyRateStatElement.textContent = `${accuracy}%`;
-    
+
     const processingTime = (Math.random() * 1.5 + 0.3).toFixed(2);
     processingTimeElement.textContent = `${processingTime}s`;
 }
@@ -202,7 +205,7 @@ function updateAllCharts() {
     updateScatterChart();
     updateLineChart();
     updateBarChart();
-    
+
     if (!appState.chartsInitialized) {
         appState.chartsInitialized = true;
     }
@@ -212,7 +215,7 @@ function updateAllCharts() {
 function updateHistogramChart() {
     // Rastgele veri oluştur
     const dataValues = Array.from({length: 20}, () => Math.floor(Math.random() * 100));
-    
+
     const trace = {
         x: dataValues,
         type: 'histogram',
@@ -226,30 +229,30 @@ function updateHistogramChart() {
         },
         nbinsx: 10
     };
-    
+
     const layout = {
         title: '',
-        xaxis: { 
+        xaxis: {
             title: 'Değerler',
             gridcolor: 'rgba(255,255,255,0.1)',
             zerolinecolor: 'rgba(255,255,255,0.3)'
         },
-        yaxis: { 
+        yaxis: {
             title: 'Frekans',
             gridcolor: 'rgba(255,255,255,0.1)',
             zerolinecolor: 'rgba(255,255,255,0.3)'
         },
-        font: { color: '#f8fafc' },
-        margin: { t: 10, r: 20, b: 50, l: 50 },
+        font: {color: '#f8fafc'},
+        margin: {t: 10, r: 20, b: 50, l: 50},
         paper_bgcolor: 'rgba(0,0,0,0)',
         plot_bgcolor: 'rgba(0,0,0,0)',
         hoverlabel: {
             bgcolor: 'rgba(30, 41, 59, 0.9)',
-            font: { color: '#f8fafc' }
+            font: {color: '#f8fafc'}
         }
     };
-    
-    Plotly.newPlot(histogramChart, [trace], layout, { 
+
+    Plotly.newPlot(histogramChart, [trace], layout, {
         responsive: true,
         displayModeBar: false
     });
@@ -260,7 +263,7 @@ function updateScatterChart() {
     // Rastgele veri oluştur
     const scatterX = Array.from({length: 15}, () => Math.floor(Math.random() * 100));
     const scatterY = scatterX.map(x => x * 0.8 + Math.random() * 20);
-    
+
     const trace = {
         x: scatterX,
         y: scatterY,
@@ -276,30 +279,30 @@ function updateScatterChart() {
             }
         }
     };
-    
+
     const layout = {
         title: '',
-        xaxis: { 
+        xaxis: {
             title: 'X Değerleri',
             gridcolor: 'rgba(255,255,255,0.1)',
             zerolinecolor: 'rgba(255,255,255,0.3)'
         },
-        yaxis: { 
+        yaxis: {
             title: 'Y Değerleri',
             gridcolor: 'rgba(255,255,255,0.1)',
             zerolinecolor: 'rgba(255,255,255,0.3)'
         },
-        font: { color: '#f8fafc' },
-        margin: { t: 10, r: 20, b: 50, l: 50 },
+        font: {color: '#f8fafc'},
+        margin: {t: 10, r: 20, b: 50, l: 50},
         paper_bgcolor: 'rgba(0,0,0,0)',
         plot_bgcolor: 'rgba(0,0,0,0)',
         hoverlabel: {
             bgcolor: 'rgba(30, 41, 59, 0.9)',
-            font: { color: '#f8fafc' }
+            font: {color: '#f8fafc'}
         }
     };
-    
-    Plotly.newPlot(scatterChart, [trace], layout, { 
+
+    Plotly.newPlot(scatterChart, [trace], layout, {
         responsive: true,
         displayModeBar: false
     });
@@ -313,7 +316,7 @@ function updateLineChart() {
         x: month,
         y: 100 + Math.random() * 100
     }));
-    
+
     const trace = {
         x: timeSeriesData.map(d => d.x),
         y: timeSeriesData.map(d => d.y),
@@ -329,30 +332,30 @@ function updateLineChart() {
             color: '#10b981'
         }
     };
-    
+
     const layout = {
         title: '',
-        xaxis: { 
+        xaxis: {
             title: 'Zaman',
             gridcolor: 'rgba(255,255,255,0.1)',
             zerolinecolor: 'rgba(255,255,255,0.3)'
         },
-        yaxis: { 
+        yaxis: {
             title: 'Değer',
             gridcolor: 'rgba(255,255,255,0.1)',
             zerolinecolor: 'rgba(255,255,255,0.3)'
         },
-        font: { color: '#f8fafc' },
-        margin: { t: 10, r: 20, b: 50, l: 50 },
+        font: {color: '#f8fafc'},
+        margin: {t: 10, r: 20, b: 50, l: 50},
         paper_bgcolor: 'rgba(0,0,0,0)',
         plot_bgcolor: 'rgba(0,0,0,0)',
         hoverlabel: {
             bgcolor: 'rgba(30, 41, 59, 0.9)',
-            font: { color: '#f8fafc' }
+            font: {color: '#f8fafc'}
         }
     };
-    
-    Plotly.newPlot(lineChart, [trace], layout, { 
+
+    Plotly.newPlot(lineChart, [trace], layout, {
         responsive: true,
         displayModeBar: false
     });
@@ -363,7 +366,7 @@ function updateBarChart() {
     // Rastgele kategori verisi oluştur
     const categories = ['Teknoloji', 'Finans', 'Sağlık', 'Eğitim', 'Perakende'];
     const categoryValues = categories.map(() => Math.floor(Math.random() * 100));
-    
+
     const trace = {
         x: categories,
         y: categoryValues,
@@ -377,30 +380,30 @@ function updateBarChart() {
             }
         }
     };
-    
+
     const layout = {
         title: '',
-        xaxis: { 
+        xaxis: {
             title: 'Kategoriler',
             gridcolor: 'rgba(255,255,255,0.1)',
             zerolinecolor: 'rgba(255,255,255,0.3)'
         },
-        yaxis: { 
+        yaxis: {
             title: 'Değerler',
             gridcolor: 'rgba(255,255,255,0.1)',
             zerolinecolor: 'rgba(255,255,255,0.3)'
         },
-        font: { color: '#f8fafc' },
-        margin: { t: 10, r: 20, b: 50, l: 50 },
+        font: {color: '#f8fafc'},
+        margin: {t: 10, r: 20, b: 50, l: 50},
         paper_bgcolor: 'rgba(0,0,0,0)',
         plot_bgcolor: 'rgba(0,0,0,0)',
         hoverlabel: {
             bgcolor: 'rgba(30, 41, 59, 0.9)',
-            font: { color: '#f8fafc' }
+            font: {color: '#f8fafc'}
         }
     };
-    
-    Plotly.newPlot(barChart, [trace], layout, { 
+
+    Plotly.newPlot(barChart, [trace], layout, {
         responsive: true,
         displayModeBar: false
     });
@@ -413,12 +416,12 @@ refreshLineButton.addEventListener('click', updateLineChart);
 refreshBarButton.addEventListener('click', updateBarChart);
 
 // Sonuçları dışa aktarma
-exportResultsButton.addEventListener('click', function() {
+exportResultsButton.addEventListener('click', function () {
     if (!appState.modelResults) {
         showNotification('Önce model çalıştırmanız gerekiyor.', 'warning');
         return;
     }
-    
+
     exportResults();
 });
 
@@ -426,7 +429,7 @@ exportResultsButton.addEventListener('click', function() {
 function exportResults() {
     // Basit bir CSV oluşturma
     let csvContent = "ID,Gerçek Değer,Tahmin,Fark,Durum\n";
-    
+
     const rows = predictionTableBody.querySelectorAll('tr');
     rows.forEach(row => {
         const cells = row.querySelectorAll('td');
@@ -439,9 +442,9 @@ function exportResults() {
         });
         csvContent += rowData.join(',') + '\n';
     });
-    
+
     // Blob oluştur ve indirme linki yarat
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const blob = new Blob([csvContent], {type: 'text/csv;charset=utf-8;'});
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
@@ -450,7 +453,7 @@ function exportResults() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    
+
     showNotification('Sonuçlar başarıyla dışa aktarıldı!', 'success');
 }
 
@@ -461,7 +464,7 @@ function showNotification(message, type = 'info') {
     existingNotifications.forEach(notification => {
         notification.remove();
     });
-    
+
     // Yeni bildirim oluştur
     const notification = document.createElement('div');
     notification.className = `notification notification-${type}`;
@@ -474,7 +477,7 @@ function showNotification(message, type = 'info') {
             <i class="fas fa-times"></i>
         </button>
     `;
-    
+
     // Stil ekle (eğer henüz eklenmediyse)
     if (!document.querySelector('#notification-styles')) {
         const style = document.createElement('style');
@@ -539,14 +542,14 @@ function showNotification(message, type = 'info') {
         `;
         document.head.appendChild(style);
     }
-    
+
     document.body.appendChild(notification);
-    
+
     // Kapatma butonuna event listener ekle
     notification.querySelector('.notification-close').addEventListener('click', () => {
         notification.remove();
     });
-    
+
     // 5 saniye sonra otomatik kapat
     setTimeout(() => {
         if (notification.parentNode) {
@@ -557,22 +560,25 @@ function showNotification(message, type = 'info') {
 
 // Bildirim ikonlarını belirle
 function getNotificationIcon(type) {
-    switch(type) {
-        case 'success': return 'check-circle';
-        case 'warning': return 'exclamation-triangle';
-        case 'info': 
-        default: return 'info-circle';
+    switch (type) {
+        case 'success':
+            return 'check-circle';
+        case 'warning':
+            return 'exclamation-triangle';
+        case 'info':
+        default:
+            return 'info-circle';
     }
 }
 
 // Sayfa yüklendiğinde grafikleri oluştur
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // İlk grafikleri oluştur
     updateAllCharts();
-    
+
     // Model sayısını rastgele ayarla
     modelCountElement.textContent = Math.floor(Math.random() * 5) + 1;
-    
+
     // Sayfa yüklendi bildirimi
     setTimeout(() => {
         showNotification('Nexus Analytics Dashboard\'a hoş geldiniz!', 'info');
@@ -580,7 +586,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Pencere boyutu değiştiğinde grafikleri yeniden boyutlandır
-window.addEventListener('resize', function() {
+window.addEventListener('resize', function () {
     if (appState.chartsInitialized) {
         setTimeout(() => {
             Plotly.Plots.resize(histogramChart);
