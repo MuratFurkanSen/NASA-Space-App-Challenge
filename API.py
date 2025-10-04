@@ -39,7 +39,7 @@ def upload_file():
     data = pd.read_csv(file_path).drop('rowid', axis=1)
     model = joblib.load(MODEL_PATH)
     prediction = model.predict(data)
-    return jsonify({'success': True, 'prediction': prediction.tolist()})
+    return jsonify({'success': True, 'predictions': prediction.tolist()})
 
 
 if __name__ == '__main__':
