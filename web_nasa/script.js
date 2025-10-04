@@ -157,8 +157,8 @@ async function getPredictions() {
         return;
     }
     let tableHTML = '';
-    for (let i = 0; i < data.predictions.length; i++) {
-        const prediction = data.predictions[i];
+    for (let i = 1; i <= data.predictions.length; i++) {
+        const prediction = data.predictions[i-1];
         tableHTML += `
             <tr>
                 <td>${i}</td>
@@ -172,6 +172,8 @@ async function getPredictions() {
     appState.modelResults = {
         predictions: tableHTML
     };
+    predictionLoading.style.display = 'None';
+    runModelButton.disabled = false;
 }
 
 function updateStats() {
@@ -185,16 +187,12 @@ function updateStats() {
 
 function exportResults() {
     // Basit bir CSV oluşturma
-    let csvContent = "ID,Gerçek Değer,Tahmin,Fark,Durum\n";
+    let csvContent = "ID,Tahmin\n";
 
     const rows = predictionTableBody.querySelectorAll('tr');
     rows.forEach(row => {
         const cells = row.querySelectorAll('td');
         const rowData = Array.from(cells).map(cell => {
-            // Durum hücresini özel işle
-            if (cell.querySelector('.status-badge')) {
-                return cell.querySelector('.status-badge').textContent;
-            }
             return cell.textContent;
         });
         csvContent += rowData.join(',') + '\n';

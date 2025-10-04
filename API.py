@@ -14,7 +14,7 @@ CORS(app)
 UPLOAD_FOLDER = 'Uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-MODEL_PATH = 'Trained Models/Random Forest Model.pkl'
+MODEL_PATH = 'Trained Models/Random Forest Model.joblib'
 
 
 # A simple route
