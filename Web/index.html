@@ -22,7 +22,7 @@
             <li><a href="#" class="active"><i class="fas fa-home"></i> Dashboard</a></li>
             <li><a href="#"><i class="fas fa-database"></i> Data Resources</a></li>
             <li><a href="#"><i class="fas fa-project-diagram"></i> Models</a></li>
-            <li><a href="#"><i class="fas fa-chart-bar"></i> Visualization</a></li>
+            <li><a href="#confusionMatrix"><i class="fas fa-chart-bar"></i> Visualization</a></li>
             <li><a href="#"><i class="fas fa-cogs"></i> Preferences</a></li>
             <li><a href="#"><i class="fas fa-question-circle"></i> Help</a></li>
         </ul>
@@ -155,7 +155,6 @@
                                 <tr>
                                     <th>ID</th>
                                     <th style="text-align: right">Prediction</th>
-
                                 </tr>
                                 </thead>
                                 <tbody id="predictionTableBody">
@@ -170,7 +169,7 @@
             <div class="card output-card hidden" id="tuneCard">
                 <div class="card-header">
                     <div class="card-title">
-                        <i class="fas fa-robot"></i> Model Predictions
+                        <i class="fas fa-robot"></i> Hyper Parameters
                     </div>
                     <div class="card-actions">
                         <button class="icon-btn" id="exportResults">
@@ -194,21 +193,88 @@
                                 <div class="prediction-value" id="accuracyRate">-</div>
                             </div>
                         </div>
-                        <div class="table-container">
+                        <div class="parameters-table">
                             <table class="prediction-table">
                                 <thead>
                                 <tr>
-                                    <th>ID</th>
-                                    <th>Actual Value</th>
-                                    <th>Prediction</th>
-                                    <th>Fark</th>
-                                    <th>Durum</th>
+                                    <th>Parameters</th>
+                                    <th style="text-align: right">Value</th>
                                 </tr>
                                 </thead>
-                                <tbody id="predictionTableBody"></tbody>
+                                <tbody>
+                                <tr>
+                                    <td>n_estimators</td>
+                                    <td style="text-align: right">
+                                        <input class="param-input" type="number" id="n_estimators" min="1" step="1" value="100">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>learning_rate</td>
+                                    <td style="text-align: right">
+                                        <input class="param-input" type="number" id="learning_rate" min="0" max="1" step="0.01" value="0.10">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>max_depth</td>
+                                    <td style="text-align: right">
+                                        <input class="param-input" type="number" id="max_depth" min="1" step="1" value="6">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>min_child_weight</td>
+                                    <td style="text-align: right">
+                                        <input class="param-input" type="number" id="min_child_weight" min="0" step="1" value="1">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>subsample</td>
+                                    <td style="text-align: right">
+                                        <input class="param-input" type="number" id="subsample" min="0" max="1" step="0.01" value="1.00">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>colsample_bytree</td>
+                                    <td style="text-align: right">
+                                        <input class="param-input" type="number" id="colsample_bytree" min="0" max="1" step="0.01" value="1.00">
+                                    </td>
+                                </tr>
+                                </tbody>
                             </table>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Visualization Cards -->
+            <div class="card chart-card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-chart-bar"></i> Charts
+                    </div>
+                    <div class="card-actions">
+                        <button class="icon-btn" id="refreshCorr">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="card-content">
+                    <div class="chart-container" id="corrMatrix"></div>
+                </div>
+            </div>
+
+            <div class="card chart-card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-chart-bar"></i> Charts
+                    </div>
+                    <div class="card-actions">
+                        <button class="icon-btn" id="refreshConfusion">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="card-content">
+                    <div class="chart-container" id="confusionMatrix"></div>
                 </div>
             </div>
         </div>
