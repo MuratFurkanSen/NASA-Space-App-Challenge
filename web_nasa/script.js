@@ -29,6 +29,11 @@ let processingTimeElement;
 
 // App State
 let appState;
+let stateSwitchButton;
+let tuneCard;
+let predictCard;
+
+
 
 document.addEventListener('DOMContentLoaded', () => {
     // DOM Elements
@@ -60,15 +65,22 @@ document.addEventListener('DOMContentLoaded', () => {
     accuracyRateStatElement = document.getElementById('accuracyRate');
     processingTimeElement = document.getElementById('processingTime');
 
+
+
     // App State
     appState = {
         uploadedFile: null,
         modelResults: null,
-        chartsInitialized: false
+        chartsInitialized: false,
+        isPredict: true,
     };
+    stateSwitchButton = document.querySelector("#stateSwitcher");
+    tuneCard = document.querySelector("#tuneCard");
+    predictCard = document.querySelector("#predictCard");
+
 });
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     // CSV Download Operations
     exportResultsButton.addEventListener('click', function () {
         if (!appState.modelResults) {
@@ -113,12 +125,42 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         getPredictions();
+
+
+
+
     });
 
     // Initial Notification
     setTimeout(() => {
-        showNotification('Nexus Analytics Dashboard\'a hoş geldiniz!', 'info');
+        showNotification('Dataway Analytics Dashboard\'a hoş geldiniz!', 'info');
     }, 1000);
+    stateSwitchButton.addEventListener('click', function () {
+        if (appState.isPredict) {
+            tuneCard.classList.add('hidden');
+            predictCard.classList.remove('hidden');
+        }
+        else {
+            predictCard.classList.add('hidden');
+            tuneCard.classList.remove('hidden');
+        }
+        appState.isPredict = !appState.isPredict;
+    })
+
+    let resp = await fetch('http://127.0.0.1:5000/get_header_info', {
+        method: 'GET',
+    });
+    if (!resp.ok) {
+        alert('Something went wrong!');
+        return;
+    }
+    let data = await resp.json();
+    console.log(data)
+    if (!data.success) {
+        alert(data.message ? data.message : 'Something went wrong! 2');
+        return;
+    }
+    fileCountElement.innerText = data['file_count'];
 })
 
 
@@ -137,6 +179,7 @@ async function getPredictions() {
     predictionLoading.style.display = 'block';
     runModelButton.disabled = true;
 
+    start = Date.now();
     const fileInput = document.getElementById("csvFile");
     const file = fileInput.files[0];
 
@@ -158,7 +201,7 @@ async function getPredictions() {
     }
     let tableHTML = '';
     for (let i = 1; i <= data.predictions.length; i++) {
-        const prediction = data.predictions[i-1];
+        const prediction = data.predictions[i - 1];
         tableHTML += `
             <tr>
                 <td>${i}</td>
@@ -174,6 +217,7 @@ async function getPredictions() {
     };
     predictionLoading.style.display = 'None';
     runModelButton.disabled = false;
+    processingTimeElement.innerText = (Date.now() - start) / 1000;
 }
 
 function updateStats() {

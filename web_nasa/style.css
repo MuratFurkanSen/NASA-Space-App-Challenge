@@ -34,6 +34,9 @@ body {
     min-height: 100vh;
     overflow-x: hidden;
 }
+.hidden {
+    display: none;
+}
 
 .app-container {
     display: flex;
@@ -231,6 +234,15 @@ body {
 .btn-full {
     width: 100%;
     justify-content: center;
+}
+.btn-primary1{
+background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white;
+    box-shadow: var(--glow);
+}
+.btn-primary1:hover{
+    transform: translateY(-2px);
+    box-shadow: 0 15px 30px -5px rgba(79, 70, 229, 0.4);
 }
 
 /* Stats Overview */
