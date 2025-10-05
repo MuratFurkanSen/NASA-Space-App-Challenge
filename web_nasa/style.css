@@ -471,9 +471,10 @@ background: linear-gradient(135deg, var(--primary), var(--primary-dark));
 }
 
 .table-container {
-    overflow-x: auto;
+    overflow: auto;
     border-radius: 12px;
     border: 1px solid var(--card-border);
+    max-height: 400px;
 }
 
 .prediction-table {
