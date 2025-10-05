@@ -10,10 +10,8 @@ let uploadArea;
 let exportResultsButton;
 
 // Graphic Elements
-let histogramChart;
-let scatterChart;
-let lineChart;
-let barChart;
+let corrMatrix;
+let confusionMatrix
 
 // Refresh Buttons
 let refreshHistogramButton;
@@ -26,6 +24,14 @@ let fileCountElement;
 let modelCountElement;
 let accuracyRateStatElement;
 let processingTimeElement;
+
+// Hyper-Parameters
+let n_estimatorsInput;
+let learning_rateInput;
+let max_depthInput;
+let min_child_weightInput;
+let subsampleInput;
+let colsample_bytreeInput;
 
 // App State
 let appState;
@@ -47,16 +53,22 @@ document.addEventListener('DOMContentLoaded', () => {
     exportResultsButton = document.getElementById('exportResults');
 
     // Graphic Elements
-    histogramChart = document.getElementById('histogramChart');
-    scatterChart = document.getElementById('scatterChart');
-    lineChart = document.getElementById('lineChart');
-    barChart = document.getElementById('barChart');
+    corrMatrix = document.getElementById('corrMatrix');
+    confusionMatrix = document.getElementById('confusionMatrix');
 
     // Refresh Buttons
     refreshHistogramButton = document.getElementById('refreshHistogram');
     refreshScatterButton = document.getElementById('refreshScatter');
     refreshLineButton = document.getElementById('refreshLine');
     refreshBarButton = document.getElementById('refreshBar');
+
+    // Hyper-Parameters
+    n_estimatorsInput = document.getElementById('n_estimators');
+    learning_rateInput = document.getElementById('learning_rate');
+    max_depthInput = document.getElementById('max_depth');
+    min_child_weightInput = document.getElementById('min_child_weight');
+    subsampleInput = document.getElementById('subsample');
+    colsample_bytreeInput = document.getElementById('colsample_bytree');
 
     // Statics Elements
     fileCountElement = document.getElementById('fileCount');
@@ -75,10 +87,9 @@ document.addEventListener('DOMContentLoaded', () => {
     stateSwitchButton = document.querySelector("#stateSwitcher");
     tuneCard = document.querySelector("#tuneCard");
     predictCard = document.querySelector("#predictCard");
-
 });
 
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', () => {
     // CSV Download Operations
     exportResultsButton.addEventListener('click', function () {
         if (!appState.modelResults) {
@@ -122,7 +133,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             showNotification('Pls upload a CSV file first.', 'warning');
             return;
         }
-        getPredictions();
+        if (runModelButton.innerText === 'Run Model') {
+            getPredictions();
+        } else if (runModelButton.innerText === 'Train Model') {
+            trainModel();
+        } else {
+            alert('Something went wrong...');
+        }
 
 
     });
@@ -134,30 +151,33 @@ document.addEventListener('DOMContentLoaded', async () => {
     stateSwitchButton.addEventListener('click', function () {
         if (appState.isPredict) {
             stateSwitchButton.innerText = 'Make Prediction';
-            tuneCard.classList.add('hidden');
-            predictCard.classList.remove('hidden');
-        } else {
-            stateSwitchButton.innerText = 'Hyper-Parameter Tweaking';
+            runModelButton.innerText = 'Train Model'
             predictCard.classList.add('hidden');
             tuneCard.classList.remove('hidden');
+        } else {
+            stateSwitchButton.innerText = 'Hyper-Parameter Tweaking';
+            runModelButton.innerText = 'Run Model'
+            predictCard.classList.remove('hidden');
+            tuneCard.classList.add('hidden');
         }
         appState.isPredict = !appState.isPredict;
     })
 
-    let resp = await fetch('http://127.0.0.1:5000/get_header_info', {
+    fetch('http://127.0.0.1:5000/get_header_info', {
         method: 'GET',
+    }).then((response) => {
+        if (!response.ok) {
+            alert('Something went wrong!');
+        }
+        return response.json();
+    }).then((data) => {
+        if (!data.success) {
+            alert(data.message ? data.message : 'Something went wrong!');
+            return;
+        }
+        fileCountElement.innerText = data['file_count'];
     });
-    if (!resp.ok) {
-        alert('Something went wrong!');
-        return;
-    }
-    let data = await resp.json();
-    if (!data.success) {
-        alert(data.message ? data.message : 'Something went wrong!');
-        return;
-    }
-    fileCountElement.innerText = data['file_count'];
-})
+});
 
 
 // File Upload Operations
@@ -170,7 +190,7 @@ function handleFileUpload(file) {
     }
 }
 
-// Model Evaluation
+// Model Prediction
 async function getPredictions() {
     predictionLoading.style.display = 'block';
     runModelButton.disabled = true;
@@ -201,7 +221,7 @@ async function getPredictions() {
         tableHTML += `
             <tr>
                 <td>${i}</td>
-                <td>${prediction}</td>
+                <td style="text-align: right">${prediction}</td>
             </tr>
         `;
     }
@@ -216,12 +236,45 @@ async function getPredictions() {
     processingTimeElement.innerText = (Date.now() - start) / 1000;
 }
 
-function updateStats() {
-    const accuracy = (75 + Math.random() * 20).toFixed(1);
-    accuracyRateStatElement.textContent = `${accuracy}%`;
+// Model Tweaking
+async function trainModel() {
+    predictionLoading.style.display = 'block';
+    runModelButton.disabled = true;
 
-    const processingTime = (Math.random() * 1.5 + 0.3).toFixed(2);
-    processingTimeElement.textContent = `${processingTime}s`;
+    start = Date.now();
+    const fileInput = document.getElementById("csvFile");
+    const file = fileInput.files[0];
+
+    const jsonData = JSON.stringify({
+        n_estimators: n_estimatorsInput.value,
+        learning_rate: learning_rateInput.value,
+        max_depth: max_depthInput.value,
+        min_child_weight: min_child_weightInput.value,
+        subsample: subsampleInput.value,
+        colsample_bytree: colsample_bytreeInput.value,
+    });
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("hyper-parameters",jsonData);
+
+    let resp = await fetch('http://127.0.0.1:5000/tweak', {
+        method: 'POST',
+        body: formData,
+    });
+    if (!resp.ok) {
+        alert('Something went wrong!');
+        return;
+    }
+    let data = await resp.json();
+    if (!data.success) {
+        alert(data.message ? data.message : 'Something went wrong!');
+        return;
+    }
+    console.log("Fuck Yeaaaah");
+    updateHeatmapChart(data['confusionMatrixInfo']['values'], confusionMatrix);
+    return;
+    updateHeatmapChart(data['correlationMatrixInfo']['values'], corrMatrix);
 }
 
 
@@ -251,7 +304,7 @@ function exportResults() {
     showNotification('Results exported successfully!', 'success');
 }
 
-// Bildirim sistemi
+// Notification System
 function showNotification(message, type = 'info') {
     // Mevcut bildirimleri temizle
     const existingNotifications = document.querySelectorAll('.notification');
@@ -363,4 +416,48 @@ function getNotificationIcon(type) {
         default:
             return 'info-circle';
     }
+}
+
+function updateHeatmapChart(zValues, chart) {
+
+    const trace = {
+        z: zValues,
+        type: 'heatmap',
+        colorscale: [
+            [0, '#1e3a8a'],   // dark blue
+            [0.5, '#6366f1'], // indigo
+            [1, '#a78bfa']    // light purple
+        ],
+        showscale: true,
+        hoverongaps: false,
+        hovertemplate: 'Correlation Value: %{z}<extra></extra>',
+        hoverlabel: {
+            bgcolor: 'rgba(30, 41, 59, 0.9)',
+            font: {color: '#f8fafc'},
+            hovertemplate: 'x=%{x}<br>y=%{y}<br>val=%{z}<extra></extra>'
+        },
+    };
+
+    const layout = {
+        title: '',
+        xaxis: {
+            title: 'X Axis',
+            gridcolor: 'rgba(255,255,255,0.1)',
+            zerolinecolor: 'rgba(255,255,255,0.3)'
+        },
+        yaxis: {
+            title: 'Y Axis',
+            gridcolor: 'rgba(255,255,255,0.1)',
+            zerolinecolor: 'rgba(255,255,255,0.3)'
+        },
+        font: {color: '#f8fafc'},
+        margin: {t: 10, r: 20, b: 50, l: 50},
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor: 'rgba(0,0,0,0)'
+    };
+
+    Plotly.newPlot(chart, [trace], layout, {
+        responsive: true,
+        displayModeBar: false
+    });
 }
