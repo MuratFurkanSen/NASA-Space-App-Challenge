@@ -42,5 +42,10 @@ def upload_file():
     return jsonify({'success': True, 'predictions': prediction.tolist()})
 
 
+@app.route('/get_header_info', methods=['GET'])
+def send_header_info():
+    return jsonify({'success': True, 'file_count': len(os.listdir(UPLOAD_FOLDER))})
+
+
 if __name__ == '__main__':
     app.run(debug=True)
