@@ -163,7 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
         appState.isPredict = !appState.isPredict;
     })
 
-    fetch('http://127.0.0.1:5000/get_header_info', {
+    fetch('/get_header_info', {
         method: 'GET',
     }).then((response) => {
         if (!response.ok) {
@@ -202,7 +202,7 @@ async function getPredictions() {
     const formData = new FormData();
     formData.append("file", file);
 
-    let resp = await fetch('http://127.0.0.1:5000/predict', {
+    let resp = await fetch('/predict', {
         method: 'POST',
         body: formData,
     });
@@ -258,7 +258,7 @@ async function trainModel() {
     formData.append("file", file);
     formData.append("hyper-parameters",jsonData);
 
-    let resp = await fetch('http://127.0.0.1:5000/tweak', {
+    let resp = await fetch('/tweak', {
         method: 'POST',
         body: formData,
     });
