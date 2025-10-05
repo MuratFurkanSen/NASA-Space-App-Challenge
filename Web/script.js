@@ -78,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 });
 
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', () => {
     // CSV Download Operations
     exportResultsButton.addEventListener('click', function () {
         if (!appState.modelResults) {
@@ -134,30 +134,31 @@ document.addEventListener('DOMContentLoaded', async () => {
     stateSwitchButton.addEventListener('click', function () {
         if (appState.isPredict) {
             stateSwitchButton.innerText = 'Make Prediction';
-            tuneCard.classList.add('hidden');
-            predictCard.classList.remove('hidden');
-        } else {
-            stateSwitchButton.innerText = 'Hyper-Parameter Tweaking';
             predictCard.classList.add('hidden');
             tuneCard.classList.remove('hidden');
+        } else {
+            stateSwitchButton.innerText = 'Hyper-Parameter Tweaking';
+            predictCard.classList.remove('hidden');
+            tuneCard.classList.add('hidden');
         }
         appState.isPredict = !appState.isPredict;
     })
 
-    let resp = await fetch('http://127.0.0.1:5000/get_header_info', {
+    fetch('http://127.0.0.1:5000/get_header_info', {
         method: 'GET',
+    }).then((response) => {
+        if (!response.ok) {
+            alert('Something went wrong!');
+        }
+    }).then((response) => {
+        let data = response.json();
+        if (!data.success) {
+            alert(data.message ? data.message : 'Something went wrong!');
+            return;
+        }
+        fileCountElement.innerText = data['file_count'];
     });
-    if (!resp.ok) {
-        alert('Something went wrong!');
-        return;
-    }
-    let data = await resp.json();
-    if (!data.success) {
-        alert(data.message ? data.message : 'Something went wrong!');
-        return;
-    }
-    fileCountElement.innerText = data['file_count'];
-})
+});
 
 
 // File Upload Operations
@@ -201,7 +202,7 @@ async function getPredictions() {
         tableHTML += `
             <tr>
                 <td>${i}</td>
-                <td>${prediction}</td>
+                <td style="text-align: right">${prediction}</td>
             </tr>
         `;
     }
@@ -215,15 +216,6 @@ async function getPredictions() {
     runModelButton.disabled = false;
     processingTimeElement.innerText = (Date.now() - start) / 1000;
 }
-
-function updateStats() {
-    const accuracy = (75 + Math.random() * 20).toFixed(1);
-    accuracyRateStatElement.textContent = `${accuracy}%`;
-
-    const processingTime = (Math.random() * 1.5 + 0.3).toFixed(2);
-    processingTimeElement.textContent = `${processingTime}s`;
-}
-
 
 function exportResults() {
     let csvContent = "ID,Prediction\n";
